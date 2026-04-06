@@ -58,6 +58,46 @@ export default function TodayPage({ appState, setAppState }: Props) {
     };
   };
 
+  const applyCompletionToLocalSchedule = (sessionId: string, notes: string, selectedMood: Mood) => {
+    if (!appState.schedule) return null;
+
+    const sessions = appState.schedule.sessions.map((session) =>
+      session.id === sessionId
+        ? {
+            ...session,
+            completed: true,
+            completed_at: new Date().toISOString(),
+            mood_before: selectedMood,
+            notes,
+          }
+        : session
+    );
+
+    const nextSchedule = {
+      ...appState.schedule,
+      sessions,
+    };
+
+    const nextProgress = {
+      ...computeLocalProgress(),
+      total_sessions_completed: sessions.filter((session) => session.completed).length,
+      topics_completed: Array.from(new Set(sessions.filter((session) => session.completed).map((session) => session.topic))),
+      completion_percentage: sessions.length > 0 ? (sessions.filter((session) => session.completed).length / sessions.length) * 100 : 0,
+      last_updated: new Date().toISOString(),
+    };
+
+    setTodaySession(
+      sessions.find((session) => session.id === sessionId) || null
+    );
+
+    setAppState({
+      schedule: nextSchedule,
+      progress: nextProgress,
+    });
+
+    return nextProgress;
+  };
+
   const applyLocalMoodAdaptation = (selectedMood: Mood) => {
     if (!appState.schedule) return;
     const today = new Date().toISOString().slice(0, 10);
@@ -114,24 +154,13 @@ export default function TodayPage({ appState, setAppState }: Props) {
       }
 
       const result = await completeSession(appState.user_id, sessionIndex, mood, sessionNotes);
+      applyCompletionToLocalSchedule(todaySession.id, sessionNotes, mood);
       setAppState({ progress: result.progress });
       setCompleted(true);
     } catch (err) {
       if (appState.schedule) {
-        const sessions = [...appState.schedule.sessions];
-        const sessionIndex = sessions.findIndex((session) => session.id === todaySession.id);
-        if (sessionIndex >= 0) {
-          sessions[sessionIndex] = {
-            ...sessions[sessionIndex],
-            completed: true,
-            completed_at: new Date().toISOString(),
-            mood_before: mood,
-            notes: sessionNotes,
-          };
-          setAppState({
-            schedule: { ...appState.schedule, sessions },
-            progress: computeLocalProgress(),
-          });
+        const nextProgress = applyCompletionToLocalSchedule(todaySession.id, sessionNotes, mood);
+        if (nextProgress) {
           setCompleted(true);
           setError("Session saved locally. Backend sync is unavailable.");
         } else {
