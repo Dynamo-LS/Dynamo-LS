@@ -26,6 +26,7 @@ gfg-hackathon/
   docs/
   prompts/
   web/
+  release-assets/
   README.md
 ```
 
@@ -68,7 +69,13 @@ VITE_API_BASE_URL=http://127.0.0.1:8000
 
 ## Android APK
 
-Debug APK is generated at:
+Separate APK artifact in this repository:
+
+```text
+release-assets/dynamic-learning-scheduler-debug.apk
+```
+
+Native build output location:
 
 ```text
 web/android/app/build/outputs/apk/debug/app-debug.apk
@@ -89,24 +96,3 @@ cd web/android
 ## License
 
 This project is currently for hackathon/demo use.
-
-## Next Step
-Use this repo as the source of truth, then scaffold:
-- web/ (React app)
-- api/ (FastAPI app)
-- infra/ (SQL migrations)
-
-## Current Status
-MVP implementation is now present in:
-- api/ (FastAPI service with all hackathon endpoints)
-- web/ (React + Tailwind app with all 5 MVP screens)
-
-## Run The MVP
-1. Start API (from api/):
-  - pip install -r requirements.txt
-  - uvicorn main:app --reload --port 8000
-2. Start Web (from web/):
-  - npm install
-  - npm run dev
-3. Open the app at:
-  - http://localhost:5173
