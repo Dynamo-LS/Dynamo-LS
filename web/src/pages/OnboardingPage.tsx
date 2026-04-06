@@ -109,16 +109,36 @@ export default function OnboardingPage({ appState, setAppState, onPlanGenerated 
     return now.toISOString().slice(0, 10);
   })();
 
-  const [plans, setPlans] = useState<PlanForm[]>([
-    {
-      id: crypto.randomUUID(),
-      goal: appState.goal || "Learn React for interviews",
-      deadline: defaultDeadline,
-      hours_per_day: 1,
-      learning_style: "practice",
-      skill_level: "beginner",
-    },
-  ]);
+  const toInitialPlans = (): PlanForm[] => {
+    const existingGoals = (appState.goal || "")
+      .split("|")
+      .map((goal) => goal.trim())
+      .filter(Boolean);
+
+    if (existingGoals.length > 0) {
+      return existingGoals.map((goal) => ({
+        id: crypto.randomUUID(),
+        goal,
+        deadline: defaultDeadline,
+        hours_per_day: 1,
+        learning_style: "practice",
+        skill_level: "beginner",
+      }));
+    }
+
+    return [
+      {
+        id: crypto.randomUUID(),
+        goal: "Learn React for interviews",
+        deadline: defaultDeadline,
+        hours_per_day: 1,
+        learning_style: "practice",
+        skill_level: "beginner",
+      },
+    ];
+  };
+
+  const [plans, setPlans] = useState<PlanForm[]>(toInitialPlans);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -317,7 +337,7 @@ export default function OnboardingPage({ appState, setAppState, onPlanGenerated 
                       onClick={() => removePlan(plan.id)}
                       className="rounded-md border border-red-400/30 px-2 py-1 text-xs text-red-200 hover:bg-red-500/15"
                     >
-                      Remove
+                      Remove Existing Plan
                     </button>
                   ) : null}
                 </div>

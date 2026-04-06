@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { checkin, getToday, completeSession } from "../api";
-import type { AppState, Mood } from "../types";
+import type { AppState, Mood, Session } from "../types";
 
 interface Props {
   appState: AppState;
@@ -9,22 +9,23 @@ interface Props {
 
 export default function TodayPage({ appState, setAppState }: Props) {
   const [mood, setMood] = useState<Mood | null>(null);
-  const [todaySession, setTodaySession] = useState<any | null>(null);
+  const [todaySessions, setTodaySessions] = useState<Session[]>([]);
   const [loading, setLoading] = useState(false);
+  const [loadingSessionId, setLoadingSessionId] = useState<string | null>(null);
   const [error, setError] = useState("");
-  const [completed, setCompleted] = useState(false);
-  const [sessionNotes, setSessionNotes] = useState("");
+  const [sessionNotesById, setSessionNotesById] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (!appState.schedule) {
-      setTodaySession(null);
+      setTodaySessions([]);
       return;
     }
 
-    const localToday = appState.schedule.sessions.find(
-      (session) => session.scheduled_date === new Date().toISOString().slice(0, 10)
+    const today = new Date().toISOString().slice(0, 10);
+    const localToday = appState.schedule.sessions.filter(
+      (session) => session.scheduled_date === today
     );
-    setTodaySession(localToday || null);
+    setTodaySessions(localToday);
   }, [appState.schedule]);
 
   useEffect(() => {
@@ -32,7 +33,12 @@ export default function TodayPage({ appState, setAppState }: Props) {
     const loadToday = async () => {
       try {
         const result = await getToday(appState.user_id);
-        setTodaySession(result.session || null);
+        const sessions = (result.all_today as Session[] | undefined) ?? [];
+        if (sessions.length > 0) {
+          setTodaySessions(sessions);
+          return;
+        }
+        setTodaySessions(result.session ? [result.session as Session] : []);
       } catch (err) {
         console.error(err);
       }
@@ -86,9 +92,8 @@ export default function TodayPage({ appState, setAppState }: Props) {
       last_updated: new Date().toISOString(),
     };
 
-    setTodaySession(
-      sessions.find((session) => session.id === sessionId) || null
-    );
+    const today = new Date().toISOString().slice(0, 10);
+    setTodaySessions(sessions.filter((session) => session.scheduled_date === today));
 
     setAppState({
       schedule: nextSchedule,
@@ -125,7 +130,8 @@ export default function TodayPage({ appState, setAppState }: Props) {
         sessions,
       },
     });
-    setTodaySession(sessions[idx]);
+    const adaptedToday = sessions.filter((session) => session.scheduled_date === today);
+    setTodaySessions(adaptedToday);
   };
 
   const handleMoodSelect = async (selectedMood: Mood) => {
@@ -134,7 +140,13 @@ export default function TodayPage({ appState, setAppState }: Props) {
     setError("");
     try {
       const result = await checkin(appState.user_id, selectedMood);
-      setTodaySession(result.adapted_schedule.sessions[0] || null);
+      setAppState({ schedule: result.adapted_schedule });
+
+      const today = new Date().toISOString().slice(0, 10);
+      const adaptedToday = result.adapted_schedule.sessions.filter(
+        (session) => session.scheduled_date === today
+      );
+      setTodaySessions(adaptedToday);
     } catch (err) {
       applyLocalMoodAdaptation(selectedMood);
       setError("Server unavailable. Applied local mood adaptation.");
@@ -143,25 +155,26 @@ export default function TodayPage({ appState, setAppState }: Props) {
     }
   };
 
-  const handleComplete = async () => {
-    if (!todaySession || !mood) return;
-    setLoading(true);
+  const handleComplete = async (session: Session) => {
+    if (!mood) return;
+    setLoadingSessionId(session.id);
     setError("");
+
+    const sessionNotes = sessionNotesById[session.id] ?? "";
+
     try {
-      const sessionIndex = appState.schedule?.sessions.findIndex((session) => session.id === todaySession.id) ?? -1;
+      const sessionIndex = appState.schedule?.sessions.findIndex((item) => item.id === session.id) ?? -1;
       if (sessionIndex < 0) {
         throw new Error("Could not find the active session in your schedule");
       }
 
       const result = await completeSession(appState.user_id, sessionIndex, mood, sessionNotes);
-      applyCompletionToLocalSchedule(todaySession.id, sessionNotes, mood);
+      applyCompletionToLocalSchedule(session.id, sessionNotes, mood);
       setAppState({ progress: result.progress });
-      setCompleted(true);
     } catch (err) {
       if (appState.schedule) {
-        const nextProgress = applyCompletionToLocalSchedule(todaySession.id, sessionNotes, mood);
+        const nextProgress = applyCompletionToLocalSchedule(session.id, sessionNotes, mood);
         if (nextProgress) {
-          setCompleted(true);
           setError("Session saved locally. Backend sync is unavailable.");
         } else {
           setError(err instanceof Error ? err.message : "Failed to mark complete");
@@ -170,7 +183,7 @@ export default function TodayPage({ appState, setAppState }: Props) {
         setError(err instanceof Error ? err.message : "Failed to mark complete");
       }
     } finally {
-      setLoading(false);
+      setLoadingSessionId(null);
     }
   };
 
@@ -228,53 +241,68 @@ export default function TodayPage({ appState, setAppState }: Props) {
             </p>
           </div>
 
-          {todaySession ? (
+          {todaySessions.length > 0 ? (
             <div className="space-y-4">
-              <div className="rounded-lg border border-white/10 bg-white/5 p-4">
-                <h3 className="font-semibold text-slate-100">{todaySession.topic}</h3>
-                <p className="mt-2 text-sm text-slate-300">
-                  {todaySession.duration_minutes} minutes • {todaySession.session_type}
-                </p>
-              </div>
+              {todaySessions.map((session) => {
+                const isCompleted = Boolean(session.completed);
+                const notes = sessionNotesById[session.id] ?? "";
 
-              {!completed && (
-                <>
-                  <label>
-                    <span className="block text-sm font-semibold text-slate-200">Session Notes (optional)</span>
-                    <textarea
-                      value={sessionNotes}
-                      onChange={(e) => setSessionNotes(e.target.value)}
-                      placeholder="How did the session go? What did you learn?"
-                      className="mt-2 w-full rounded border border-white/15 bg-white/5 px-3 py-2 text-slate-100 placeholder:text-slate-400 focus:border-cyan-400 focus:outline-none"
-                      rows={3}
-                    />
-                  </label>
+                return (
+                  <div key={session.id} className="space-y-3 rounded-lg border border-white/10 bg-white/5 p-4">
+                    <div>
+                      <h3 className="font-semibold text-slate-100">{session.topic}</h3>
+                      <p className="mt-1 text-sm text-slate-300">
+                        {session.duration_minutes} minutes • {session.session_type}
+                      </p>
+                    </div>
 
-                  <button
-                    onClick={handleComplete}
-                    disabled={loading}
-                    className="w-full rounded-lg bg-green-600 px-6 py-3 font-semibold text-white hover:bg-green-700 disabled:bg-slate-300"
-                  >
-                    {loading ? "Marking as complete..." : "✓ Mark Session Complete"}
-                  </button>
-                </>
-              )}
+                    <label>
+                      <span className="block text-sm font-semibold text-slate-200">Session Notes (optional)</span>
+                      <textarea
+                        value={notes}
+                        onChange={(e) =>
+                          setSessionNotesById((prev) => ({
+                            ...prev,
+                            [session.id]: e.target.value,
+                          }))
+                        }
+                        placeholder="How did the session go? What did you learn?"
+                        className="mt-2 w-full rounded border border-white/15 bg-white/5 px-3 py-2 text-slate-100 placeholder:text-slate-400 focus:border-cyan-400 focus:outline-none"
+                        rows={3}
+                        disabled={isCompleted}
+                      />
+                    </label>
 
-              {completed && (
+                    {!isCompleted ? (
+                      <button
+                        onClick={() => handleComplete(session)}
+                        disabled={loadingSessionId === session.id || !mood}
+                        className="w-full rounded-lg bg-green-600 px-6 py-3 font-semibold text-white hover:bg-green-700 disabled:bg-slate-500"
+                      >
+                        {loadingSessionId === session.id ? "Marking as complete..." : "✓ Mark Session Complete"}
+                      </button>
+                    ) : (
+                      <div className="rounded border border-green-400/30 bg-green-500/15 p-3 text-sm text-green-200">
+                        Completed for today.
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+
+              {todaySessions.every((session) => session.completed) ? (
                 <div className="rounded-lg border border-green-400/30 bg-green-500/15 p-4 text-center text-green-200">
-                  <p className="font-semibold">🎉 Great job! Session completed.</p>
+                  <p className="font-semibold">🎉 Great job! All today sessions are completed.</p>
                   <button
                     onClick={() => {
                       setMood(null);
-                      setCompleted(false);
-                      setSessionNotes("");
                     }}
                     className="mt-2 text-sm font-semibold underline"
                   >
                     Check in again for tomorrow
                   </button>
                 </div>
-              )}
+              ) : null}
             </div>
           ) : (
             <div className="rounded-lg border border-white/10 bg-white/5 p-4 text-center">
