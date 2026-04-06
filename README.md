@@ -21,6 +21,7 @@ Adaptive learning planner with React + FastAPI, local-first data persistence usi
 
 ```text
 gfg-hackathon/
+  apk/
   api/
   demo/
   docs/
@@ -70,6 +71,12 @@ VITE_API_BASE_URL=http://127.0.0.1:8000
 ## Android APK
 
 Separate APK artifact in this repository:
+
+```text
+apk/dynamic-learning-scheduler-debug.apk
+```
+
+Backup copy:
 
 ```text
 release-assets/dynamic-learning-scheduler-debug.apk
