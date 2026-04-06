@@ -2,6 +2,18 @@
 
 Adaptive learning planner with React + FastAPI, local-first data persistence using IndexedDB, and Android APK packaging via Capacitor.
 
+## 📌 Problem Solved
+
+Students struggle with:
+- Inconsistent study schedules  
+- Lack of personalization  
+- No offline-capable tools  
+
+This project solves it by:
+- Adapting schedules dynamically  
+- Tracking progress per user  
+- Supporting offline-first behavior  
+
 ## Highlights
 
 - One-time login flow (name + age) with logout support
