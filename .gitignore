@@ -10,6 +10,9 @@ __pycache__/
 *.pyc
 .venv/
 venv/
+.env
+*.env
+api/.env
 
 # Node
 node_modules/
