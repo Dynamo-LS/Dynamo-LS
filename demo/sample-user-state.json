@@ -1,0 +1,22 @@
+{
+  "user": {
+    "id": "u_demo_1",
+    "name": "Ari",
+    "goal": "Learn React for interviews",
+    "deadline": "2026-05-20",
+    "hoursPerDay": 2,
+    "hoursPerWeek": 12,
+    "skillLevel": "beginner",
+    "learningStyle": "practice-heavy"
+  },
+  "checkins": [
+    {"date": "2026-04-03", "mood": "okay"},
+    {"date": "2026-04-04", "mood": "tired"},
+    {"date": "2026-04-05", "mood": "energized"}
+  ],
+  "progress": {
+    "streak": 6,
+    "completionPct": 42,
+    "eta": "2026-05-19"
+  }
+}
