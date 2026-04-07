@@ -51,7 +51,7 @@ def _merge_plan_sessions(plan_results: list[tuple[str, list[dict]]]) -> list[dic
             merged.append(
                 {
                     **session,
-                    "topic": f"[{plan_label}] {session['topic']}",
+                    "plan_label": plan_label,
                 }
             )
 
