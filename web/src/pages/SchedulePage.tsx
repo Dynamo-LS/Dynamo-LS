@@ -102,14 +102,14 @@ export default function SchedulePage({ appState, setAppState }: Props) {
 
   const getSessionHeadline = (session: (typeof appState.schedule.sessions)[number], dayIndex: number) => {
     const stage = topicStages[dayIndex % topicStages.length];
-    const baseTopic = session.topic.replace(/\s*[-–—]\s*(Foundations|Syntax Basics|Core Concepts|Hands-on Practice|Applied Exercises|Review and Reinforcement|Assessment and Recap)$/i, "");
-
-    if (baseTopic.trim().length > 0 && baseTopic !== session.topic) {
-      return `${baseTopic.trim()} • ${stage}`;
-    }
-
     return `${stage}`;
   };
+
+  const getCleanTopic = (topic: string) =>
+    topic
+      .replace(/^\[[^\]]+\]\s*/i, "")
+      .replace(/\s*[-–—]\s*(Foundations|Syntax Basics|Core Concepts|Hands-on Practice|Applied Exercises|Review and Reinforcement|Assessment and Recap)$/i, "")
+      .trim();
 
   return (
     <div className="space-y-6 p-6">
@@ -170,7 +170,7 @@ export default function SchedulePage({ appState, setAppState }: Props) {
                       className={`rounded-xl border px-3 py-2 text-sm ${typeClassMap[session.session_type] ?? "border-white/20 bg-white/10 text-slate-100"}`}
                     >
                       <p className="font-semibold">{getSessionHeadline(session, dayIndex)}</p>
-                      <p className="mt-1 text-xs opacity-90">{session.topic}</p>
+                      <p className="mt-1 text-xs opacity-90">{getCleanTopic(session.topic)}</p>
                       <p className="mt-1 text-xs opacity-90">{session.duration_minutes} min • {session.session_type}</p>
                     </div>
                   ))}
@@ -211,7 +211,7 @@ export default function SchedulePage({ appState, setAppState }: Props) {
                         className={`rounded-xl border px-3 py-2 text-sm ${typeClassMap[session.session_type] ?? "border-white/20 bg-white/10 text-slate-100"}`}
                       >
                         <p className="truncate font-semibold" title={session.topic}>{getSessionHeadline(session, dayIndex)}</p>
-                        <p className="mt-1 truncate text-xs opacity-90" title={session.topic}>{session.topic}</p>
+                        <p className="mt-1 truncate text-xs opacity-90" title={session.topic}>{getCleanTopic(session.topic)}</p>
                         <p className="mt-1 text-xs opacity-90">{session.duration_minutes} min • {session.session_type}</p>
                       </div>
                     ))
