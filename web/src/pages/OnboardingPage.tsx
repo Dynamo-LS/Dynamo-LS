@@ -183,6 +183,24 @@ export default function OnboardingPage({ appState, setAppState, onPlanGenerated 
     const today = new Date();
     let id = 0;
 
+    const topicStages = [
+      "Foundations",
+      "Syntax Basics",
+      "Core Concepts",
+      "Hands-on Practice",
+      "Applied Exercises",
+      "Review and Reinforcement",
+      "Assessment and Recap",
+    ];
+
+    const subjectFromGoal = (goal: string) => {
+      const cleaned = goal
+        .replace(/^learn\s+/i, "")
+        .replace(/\s+for\s+.*$/i, "")
+        .trim();
+      return cleaned || goal.trim();
+    };
+
     for (let day = 0; day < 7; day += 1) {
       const date = new Date(today);
       date.setDate(today.getDate() + day);
@@ -190,9 +208,11 @@ export default function OnboardingPage({ appState, setAppState, onPlanGenerated 
 
       for (const plan of inputPlans) {
         const duration = Math.max(15, Math.round(plan.hours_per_day * 60 * 0.6));
+        const subject = subjectFromGoal(plan.goal);
+        const stage = topicStages[day % topicStages.length];
         sessions.push({
           id: String(id++),
-          topic: `[${plan.goal.split(" ").slice(0, 3).join(" ")}] ${plan.goal}`,
+          topic: `${subject} - ${stage}`,
           duration_minutes: duration,
           session_type: plan.learning_style === "practice" ? "practice" : "learn",
           scheduled_date: scheduledDate,

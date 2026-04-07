@@ -80,13 +80,6 @@ export default function SchedulePage({ appState, setAppState }: Props) {
     }
   });
 
-  const todayDayName = (() => {
-    const dayIndex = new Date().getDay();
-    return days[(dayIndex + 6) % 7];
-  })();
-
-  const [activeDay, setActiveDay] = useState<string>(todayDayName);
-
   const totalSessions = appState.schedule.sessions.length;
   const completedSessions = appState.schedule.sessions.filter((session) => session.completed).length;
   const plannedMinutes = appState.schedule.sessions.reduce((sum, session) => sum + session.duration_minutes, 0);
@@ -128,60 +121,43 @@ export default function SchedulePage({ appState, setAppState }: Props) {
         </div>
       </div>
 
-      <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-3 md:hidden">
-        <div className="flex items-center justify-between">
-          <p className="text-sm font-semibold text-slate-100">Weekly Routine Navigator</p>
-          <p className="text-xs text-slate-400">Tap a day</p>
-        </div>
-        <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
-          {days.map((day) => {
-            const isActive = activeDay === day;
-            const hasSessions = sessionsByDay[day].length > 0;
-            return (
-              <button
-                key={day}
-                type="button"
-                onClick={() => setActiveDay(day)}
-                className={`shrink-0 rounded-xl border px-3 py-2 text-sm font-semibold transition ${
-                  isActive
-                    ? "border-cyan-300/50 bg-gradient-to-r from-cyan-500/35 to-indigo-500/35 text-white"
-                    : "border-white/15 bg-white/5 text-slate-200"
-                }`}
-              >
-                <span>{day}</span>
-                <span className={`ml-2 rounded-full px-2 py-0.5 text-[10px] ${hasSessions ? "bg-cyan-500/20 text-cyan-100" : "bg-white/10 text-slate-400"}`}>
-                  {sessionsByDay[day].length}
-                </span>
-              </button>
-            );
-          })}
-        </div>
+      <div className="space-y-3 md:hidden">
+        {days.map((day) => {
+          const daySessions = sessionsByDay[day];
+          const dayMinutes = daySessions.reduce((sum, session) => sum + session.duration_minutes, 0);
 
-        <div className="mt-3 rounded-xl border border-white/10 bg-gradient-to-b from-white/[0.08] to-white/[0.03] p-3">
-          <div className="mb-2 flex items-center justify-between">
-            <h3 className="text-lg font-bold text-white">{activeDay}</h3>
-            <span className="rounded-full border border-white/15 bg-white/5 px-2 py-1 text-[11px] text-slate-300">
-              {sessionsByDay[activeDay].reduce((sum, session) => sum + session.duration_minutes, 0)}m
-            </span>
-          </div>
-          {sessionsByDay[activeDay].length === 0 ? (
-            <p className="rounded-lg border border-dashed border-white/15 bg-white/[0.02] px-3 py-3 text-sm text-slate-400">
-              Recovery block. No active sessions today.
-            </p>
-          ) : (
-            <div className="space-y-2">
-              {sessionsByDay[activeDay].map((session) => (
-                <div
-                  key={session.id}
-                  className={`rounded-xl border px-3 py-2 text-sm ${typeClassMap[session.session_type] ?? "border-white/20 bg-white/10 text-slate-100"}`}
-                >
-                  <p className="font-semibold">{session.topic}</p>
-                  <p className="mt-1 text-xs opacity-90">{session.duration_minutes} min • {session.session_type}</p>
+          return (
+            <div
+              key={day}
+              className="rounded-2xl border border-white/10 bg-gradient-to-b from-white/[0.08] to-white/[0.03] p-4"
+            >
+              <div className="mb-2 flex items-center justify-between">
+                <h3 className="text-lg font-bold text-white">{day}</h3>
+                <span className="rounded-full border border-white/15 bg-white/5 px-2 py-1 text-[11px] text-slate-300">
+                  {daySessions.length === 0 ? "Rest" : `${dayMinutes}m`}
+                </span>
+              </div>
+
+              {daySessions.length === 0 ? (
+                <p className="rounded-lg border border-dashed border-white/15 bg-white/[0.02] px-3 py-3 text-sm text-slate-400">
+                  Recovery block. No active sessions today.
+                </p>
+              ) : (
+                <div className="space-y-2">
+                  {daySessions.map((session) => (
+                    <div
+                      key={session.id}
+                      className={`rounded-xl border px-3 py-2 text-sm ${typeClassMap[session.session_type] ?? "border-white/20 bg-white/10 text-slate-100"}`}
+                    >
+                      <p className="font-semibold">{session.topic}</p>
+                      <p className="mt-1 text-xs opacity-90">{session.duration_minutes} min • {session.session_type}</p>
+                    </div>
+                  ))}
                 </div>
-              ))}
+              )}
             </div>
-          )}
-        </div>
+          );
+        })}
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[1.7fr_1fr]">
