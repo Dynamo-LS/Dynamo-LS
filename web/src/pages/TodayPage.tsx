@@ -149,7 +149,7 @@ export default function TodayPage({ appState, setAppState }: Props) {
       setTodaySessions(adaptedToday);
     } catch (err) {
       applyLocalMoodAdaptation(selectedMood);
-      setError("Server unavailable. Applied local mood adaptation.");
+      setError("");
     } finally {
       setLoading(false);
     }
@@ -175,7 +175,7 @@ export default function TodayPage({ appState, setAppState }: Props) {
       if (appState.schedule) {
         const nextProgress = applyCompletionToLocalSchedule(session.id, sessionNotes, mood);
         if (nextProgress) {
-          setError("Session saved locally. Backend sync is unavailable.");
+          setError("");
         } else {
           setError(err instanceof Error ? err.message : "Failed to mark complete");
         }
