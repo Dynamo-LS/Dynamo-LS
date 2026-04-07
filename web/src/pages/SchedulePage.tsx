@@ -65,6 +65,15 @@ export default function SchedulePage({ appState, setAppState }: Props) {
   };
 
   const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+  const topicStages = [
+    "Foundations",
+    "Syntax Basics",
+    "Core Concepts",
+    "Hands-on Practice",
+    "Applied Exercises",
+    "Review and Reinforcement",
+    "Assessment and Recap",
+  ];
   const sessionsByDay: Record<string, typeof appState.schedule.sessions> = {};
   
   days.forEach((day) => {
@@ -89,6 +98,17 @@ export default function SchedulePage({ appState, setAppState }: Props) {
     learn: "border-blue-300/40 bg-blue-500/15 text-blue-100",
     practice: "border-emerald-300/35 bg-emerald-500/15 text-emerald-100",
     review: "border-amber-300/35 bg-amber-500/15 text-amber-100",
+  };
+
+  const getSessionHeadline = (session: (typeof appState.schedule.sessions)[number], dayIndex: number) => {
+    const stage = topicStages[dayIndex % topicStages.length];
+    const baseTopic = session.topic.replace(/\s*[-–—]\s*(Foundations|Syntax Basics|Core Concepts|Hands-on Practice|Applied Exercises|Review and Reinforcement|Assessment and Recap)$/i, "");
+
+    if (baseTopic.trim().length > 0 && baseTopic !== session.topic) {
+      return `${baseTopic.trim()} • ${stage}`;
+    }
+
+    return `${stage}`;
   };
 
   return (
@@ -122,7 +142,7 @@ export default function SchedulePage({ appState, setAppState }: Props) {
       </div>
 
       <div className="space-y-3 md:hidden">
-        {days.map((day) => {
+        {days.map((day, dayIndex) => {
           const daySessions = sessionsByDay[day];
           const dayMinutes = daySessions.reduce((sum, session) => sum + session.duration_minutes, 0);
 
@@ -149,7 +169,8 @@ export default function SchedulePage({ appState, setAppState }: Props) {
                       key={session.id}
                       className={`rounded-xl border px-3 py-2 text-sm ${typeClassMap[session.session_type] ?? "border-white/20 bg-white/10 text-slate-100"}`}
                     >
-                      <p className="font-semibold">{session.topic}</p>
+                      <p className="font-semibold">{getSessionHeadline(session, dayIndex)}</p>
+                      <p className="mt-1 text-xs opacity-90">{session.topic}</p>
                       <p className="mt-1 text-xs opacity-90">{session.duration_minutes} min • {session.session_type}</p>
                     </div>
                   ))}
@@ -162,7 +183,7 @@ export default function SchedulePage({ appState, setAppState }: Props) {
 
       <div className="grid gap-6 lg:grid-cols-[1.7fr_1fr]">
         <div className="hidden gap-3 md:grid md:grid-cols-2 xl:grid-cols-3">
-          {days.map((day) => {
+          {days.map((day, dayIndex) => {
             const daySessions = sessionsByDay[day];
             const dayMinutes = daySessions.reduce((sum, session) => sum + session.duration_minutes, 0);
 
@@ -189,7 +210,8 @@ export default function SchedulePage({ appState, setAppState }: Props) {
                         key={session.id}
                         className={`rounded-xl border px-3 py-2 text-sm ${typeClassMap[session.session_type] ?? "border-white/20 bg-white/10 text-slate-100"}`}
                       >
-                        <p className="truncate font-semibold" title={session.topic}>{session.topic}</p>
+                        <p className="truncate font-semibold" title={session.topic}>{getSessionHeadline(session, dayIndex)}</p>
+                        <p className="mt-1 truncate text-xs opacity-90" title={session.topic}>{session.topic}</p>
                         <p className="mt-1 text-xs opacity-90">{session.duration_minutes} min • {session.session_type}</p>
                       </div>
                     ))
