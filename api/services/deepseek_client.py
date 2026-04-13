@@ -20,32 +20,34 @@ except Exception:
 DEFAULT_BASE_URL = "https://api.deepseek.com"
 DEFAULT_MODEL = "deepseek-chat"
 ALLOWED_SESSION_TYPES = {"learn", "review", "practice"}
-MOCK_SUBJECT_TOPICS = [
-    "Mathematics",
-    "Physics",
-    "Chemistry",
-    "Biology",
-    "English",
-    "History",
-    "Geography",
-    "Civics",
-    "Programming Fundamentals",
-    "Object-Oriented Programming",
-    "Computer Science",
-    "Data Structures and Algorithms",
-    "Database Management Systems",
-    "Operating Systems",
-    "Computer Networks",
-    "Web Development",
-    "Java",
-    "Python",
-    "System Design",
-    "Machine Learning Basics",
-    "Aptitude",
-    "Reasoning",
-    "Current Affairs",
-    "Mock Test Review",
-]
+MOCK_SUBJECT_CURRICULA = {
+    "mathematics": ["Number Systems", "Algebra", "Linear Equations", "Quadratic Equations", "Trigonometry", "Coordinate Geometry", "Calculus Basics", "Statistics and Probability"],
+    "physics": ["Units and Measurements", "Kinematics", "Laws of Motion", "Work, Energy and Power", "Thermodynamics", "Electrostatics", "Current Electricity", "Modern Physics"],
+    "chemistry": ["Atomic Structure", "Periodic Table", "Chemical Bonding", "States of Matter", "Thermodynamics", "Equilibrium", "Organic Basics", "Revision and Numericals"],
+    "biology": ["Cell Structure", "Human Physiology", "Plant Physiology", "Genetics", "Evolution", "Ecology", "Reproduction", "Revision and Diagrams"],
+    "english": ["Grammar Fundamentals", "Vocabulary Building", "Reading Comprehension", "Writing Skills", "Literature Analysis", "Essay Practice", "Spoken English", "Mock Passage Review"],
+    "history": ["Ancient Civilizations", "Medieval India", "Modern India", "World Wars", "Freedom Movement", "Post-Independence India", "Important Movements", "Revision Timelines"],
+    "geography": ["Earth and Maps", "Climate and Weather", "Physical Geography", "Resources and Agriculture", "Population and Settlement", "India Geography", "World Geography", "Map Practice"],
+    "civics": ["Constitution Basics", "Rights and Duties", "Democracy", "Parliament and Law", "Judiciary", "Government Structure", "Elections", "Case Study Revision"],
+    "programming fundamentals": ["Problem Solving Logic", "Variables and Data Types", "Conditionals", "Loops", "Functions", "Arrays and Strings", "Basic Recursion", "Mini Coding Drills"],
+    "object-oriented programming": ["Classes and Objects", "Encapsulation", "Inheritance", "Polymorphism", "Abstraction", "Constructors", "Interfaces", "OOP Practice"],
+    "computer science": ["Number Systems", "Logic Gates", "Computer Architecture", "Operating Systems", "Databases", "Networking Basics", "Software Engineering", "Revision and Practice"],
+    "data structures and algorithms": ["Arrays", "Linked Lists", "Stacks and Queues", "Trees", "Graphs", "Sorting and Searching", "Dynamic Programming", "Mock Interview Practice"],
+    "database management systems": ["ER Modeling", "Relational Model", "SQL Queries", "Normalization", "Transactions", "Indexing", "Stored Procedures", "DBMS Practice"],
+    "operating systems": ["Processes and Threads", "CPU Scheduling", "Memory Management", "Paging and Segmentation", "File Systems", "Deadlocks", "Synchronization", "OS Practice"],
+    "computer networks": ["OSI Model", "TCP/IP Basics", "IP Addressing", "Routing and Switching", "DNS and DHCP", "HTTP and HTTPS", "Network Security", "CN Practice"],
+    "web development": ["HTML and CSS", "JavaScript Basics", "Responsive Layouts", "DOM and Events", "React Components", "State Management", "API Integration", "Project Build"],
+    "java": ["Java Syntax", "Control Flow", "OOP in Java", "Collections", "Exception Handling", "Streams", "Multithreading", "Java Practice"],
+    "python": ["Python Syntax", "Data Structures", "Functions and Modules", "File Handling", "OOP in Python", "Libraries and Packages", "Testing", "Python Practice"],
+    "system design": ["Scalability Basics", "Caching", "Load Balancing", "Databases at Scale", "Message Queues", "Distributed Systems", "Trade-offs and Patterns", "Design Interview Practice"],
+    "machine learning": ["Statistics Basics", "Data Preparation", "Regression", "Classification", "Model Evaluation", "Overfitting and Regularization", "Feature Engineering", "ML Practice"],
+    "aptitude": ["Percentages", "Ratio and Proportion", "Time and Work", "Speed and Distance", "Profit and Loss", "Averages", "Permutation and Combination", "Aptitude Practice"],
+    "reasoning": ["Series", "Coding-Decoding", "Seating Arrangement", "Syllogisms", "Blood Relations", "Puzzles", "Direction Sense", "Reasoning Practice"],
+    "current affairs": ["National News", "International News", "Economy", "Science and Tech", "Sports", "Awards and Honours", "Government Schemes", "Weekly Current Affairs Review"],
+    "mock test review": ["Error Analysis", "Speed Review", "Weak Areas", "Time Management", "Accuracy Check", "Revision Sprint", "Formula Drill", "Final Mock Review"],
+}
+
+MOCK_SUBJECT_TOPICS = [topic for curriculum in MOCK_SUBJECT_CURRICULA.values() for topic in curriculum]
 
 
 def _provider() -> str:
@@ -96,6 +98,11 @@ def _fallback_goal_analysis(goal: str) -> dict[str, Any]:
         ]
     else:
         topics = MOCK_SUBJECT_TOPICS
+
+        for keyword, curriculum in MOCK_SUBJECT_CURRICULA.items():
+            if keyword in goal_text:
+                topics = curriculum
+                break
 
     return {
         "subtopics": [

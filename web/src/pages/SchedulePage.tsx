@@ -65,15 +65,6 @@ export default function SchedulePage({ appState, setAppState }: Props) {
   };
 
   const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-  const topicStages = [
-    "Foundations",
-    "Syntax Basics",
-    "Core Concepts",
-    "Hands-on Practice",
-    "Applied Exercises",
-    "Review and Reinforcement",
-    "Assessment and Recap",
-  ];
   const sessionsByDay: Record<string, typeof appState.schedule.sessions> = {};
   
   days.forEach((day) => {
@@ -100,16 +91,15 @@ export default function SchedulePage({ appState, setAppState }: Props) {
     review: "border-amber-300/35 bg-amber-500/15 text-amber-100",
   };
 
-  const getSessionHeadline = (session: (typeof appState.schedule.sessions)[number], dayIndex: number) => {
-    const stage = topicStages[dayIndex % topicStages.length];
-    return `${stage}`;
+  const splitTopic = (topic: string) => topic.split(/\s*[-–—]\s*/);
+
+  const getSessionHeadline = (session: (typeof appState.schedule.sessions)[number]) => {
+    const parts = splitTopic(session.topic);
+    return parts[1] ?? parts[0] ?? session.topic;
   };
 
   const getCleanTopic = (topic: string) =>
-    topic
-      .replace(/^\[[^\]]+\]\s*/i, "")
-      .replace(/\s*[-–—]\s*(Foundations|Syntax Basics|Core Concepts|Hands-on Practice|Applied Exercises|Review and Reinforcement|Assessment and Recap)$/i, "")
-      .trim();
+    splitTopic(topic)[0]?.replace(/^\[[^\]]+\]\s*/i, "").trim() ?? topic.trim();
 
   return (
     <div className="space-y-6 p-6">
@@ -169,7 +159,7 @@ export default function SchedulePage({ appState, setAppState }: Props) {
                       key={session.id}
                       className={`rounded-xl border px-3 py-2 text-sm ${typeClassMap[session.session_type] ?? "border-white/20 bg-white/10 text-slate-100"}`}
                     >
-                      <p className="font-semibold">{getSessionHeadline(session, dayIndex)}</p>
+                      <p className="font-semibold">{getSessionHeadline(session)}</p>
                       <p className="mt-1 text-xs opacity-90">{getCleanTopic(session.topic)}</p>
                       <p className="mt-1 text-xs opacity-90">{session.duration_minutes} min • {session.session_type}</p>
                     </div>
@@ -210,7 +200,7 @@ export default function SchedulePage({ appState, setAppState }: Props) {
                         key={session.id}
                         className={`rounded-xl border px-3 py-2 text-sm ${typeClassMap[session.session_type] ?? "border-white/20 bg-white/10 text-slate-100"}`}
                       >
-                        <p className="truncate font-semibold" title={session.topic}>{getSessionHeadline(session, dayIndex)}</p>
+                        <p className="truncate font-semibold" title={session.topic}>{getSessionHeadline(session)}</p>
                         <p className="mt-1 truncate text-xs opacity-90" title={session.topic}>{getCleanTopic(session.topic)}</p>
                         <p className="mt-1 text-xs opacity-90">{session.duration_minutes} min • {session.session_type}</p>
                       </div>
