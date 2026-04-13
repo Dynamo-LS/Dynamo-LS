@@ -21,6 +21,7 @@ from store import (
     reschedule_sessions,
 )
 from services.deepseek_client import deepseek_weekly_schedule, deepseek_weekly_summary
+from services.input_safety import validate_no_bad_words, validate_study_goal
 from services.adaptation import (
     adapt_for_mood,
     reschedule_for_constraint,
@@ -70,6 +71,12 @@ def health():
 @app.post("/api/onboard")
 def onboard(req: OnboardingRequest):
     """Create user and generate initial schedule."""
+    try:
+        validate_no_bad_words(req.name, "name")
+        validate_study_goal(req.goal)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
     user = create_user(req.model_dump())
 
     sessions, source, source_error = deepseek_weekly_schedule(
@@ -94,6 +101,13 @@ def onboard(req: OnboardingRequest):
 @app.post("/api/onboard-multi")
 def onboard_multi(req: MultiOnboardingRequest):
     """Create user and generate a merged schedule from multiple plans."""
+    try:
+        validate_no_bad_words(req.name, "name")
+        for idx, plan in enumerate(req.plans):
+            validate_study_goal(plan.goal, f"plans[{idx}].goal")
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
     total_hours = sum(plan.hours_per_day for plan in req.plans)
     if total_hours > 12:
         raise HTTPException(
@@ -191,6 +205,11 @@ def checkin(req: CheckinRequest):
 @app.post("/api/session/complete")
 def mark_complete(req: SessionCompleteRequest):
     """Mark session as completed."""
+    try:
+        validate_no_bad_words(req.notes or "", "notes")
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
     result = mark_session_complete(req.user_id, req.session_index, req.mood, req.notes or "")
     progress = get_progress(req.user_id)
 
@@ -224,6 +243,11 @@ def get_progress_view(user_id: str):
 @app.post("/api/reschedule")
 def reschedule(req: RescheduleRequest):
     """Dynamically reschedule based on constraint."""
+    try:
+        validate_no_bad_words(req.reason, "reason")
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
     schedule = get_current_schedule(req.user_id)
     if not schedule:
         raise HTTPException(status_code=404, detail="Schedule not found")

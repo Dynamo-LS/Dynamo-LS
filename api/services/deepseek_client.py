@@ -20,6 +20,32 @@ except Exception:
 DEFAULT_BASE_URL = "https://api.deepseek.com"
 DEFAULT_MODEL = "deepseek-chat"
 ALLOWED_SESSION_TYPES = {"learn", "review", "practice"}
+MOCK_SUBJECT_TOPICS = [
+    "Mathematics",
+    "Physics",
+    "Chemistry",
+    "Biology",
+    "English",
+    "History",
+    "Geography",
+    "Civics",
+    "Programming Fundamentals",
+    "Object-Oriented Programming",
+    "Computer Science",
+    "Data Structures and Algorithms",
+    "Database Management Systems",
+    "Operating Systems",
+    "Computer Networks",
+    "Web Development",
+    "Java",
+    "Python",
+    "System Design",
+    "Machine Learning Basics",
+    "Aptitude",
+    "Reasoning",
+    "Current Affairs",
+    "Mock Test Review",
+]
 
 
 def _provider() -> str:
@@ -69,14 +95,7 @@ def _fallback_goal_analysis(goal: str) -> dict[str, Any]:
             "Projects",
         ]
     else:
-        topics = [
-            "Foundations",
-            "Core Concepts",
-            "Practice",
-            "Review",
-            "Applied Exercises",
-            "Advanced Topics",
-        ]
+        topics = MOCK_SUBJECT_TOPICS
 
     return {
         "subtopics": [

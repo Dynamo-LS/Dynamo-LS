@@ -6,6 +6,32 @@ from math import floor
 from models import Session, WeekPlan
 
 DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+MOCK_SUBJECT_TOPICS = [
+    "Mathematics",
+    "Physics",
+    "Chemistry",
+    "Biology",
+    "English",
+    "History",
+    "Geography",
+    "Civics",
+    "Programming Fundamentals",
+    "Object-Oriented Programming",
+    "Computer Science",
+    "Data Structures and Algorithms",
+    "Database Management Systems",
+    "Operating Systems",
+    "Computer Networks",
+    "Web Development",
+    "Java",
+    "Python",
+    "System Design",
+    "Machine Learning Basics",
+    "Aptitude",
+    "Reasoning",
+    "Current Affairs",
+    "Mock Test Review",
+]
 
 
 def _topics_for_goal(goal: str) -> list[str]:
@@ -33,14 +59,7 @@ def _topics_for_goal(goal: str) -> list[str]:
             "Projects",
         ]
     return [
-        "Foundations",
-        "Core Concepts",
-        "Intermediate Practice",
-        "Applied Exercises",
-        "Advanced Topics",
-        "Revision",
-        "Project Sprint",
-        "Mock Assessment",
+        *MOCK_SUBJECT_TOPICS,
     ]
 
 
